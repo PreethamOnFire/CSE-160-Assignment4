@@ -38,6 +38,7 @@ var FSHADER_SOURCE =
     uniform vec3 u_reverseLightDirection;
     uniform int u_NormalVisual;
     uniform bool u_lightsOn;
+    uniform bool u_specularOn;
     uniform vec3 u_ambientLight;
     uniform vec3 u_CameraPosition;
     uniform vec3 u_lightColor;
@@ -66,6 +67,9 @@ var FSHADER_SOURCE =
       vec3 lightPosition = normalize(u_reverseLightDirection - v_Position);
       vec3 spotlightPosition = normalize(u_SpotlightPosition - v_Position);
       float theta = dot(spotlightPosition, normalize(-u_SpotlightDirection));
+      vec3 reflection;
+      vec3 viewDirection;
+      vec3 specular;
       vec4 image0; 
       if (v_texSelector < 0.5) {
         image0 = texture2D(texture0, v_Uv);
@@ -85,10 +89,13 @@ var FSHADER_SOURCE =
         vec3 diffuse = u_lightColor * vec3(color) * light;
         vec3 ambient = u_ambientLight * color.rgb;
         vec3 result = ambient;
-        vec3 reflection = 2.0 * max(dot(normal, lightPosition), 0.0) * (normal - lightPosition);
-        vec3 viewDirection =  normalize(u_CameraPosition - v_Position);
-        vec3 specular = pow(max(dot(reflection, viewDirection), 0.0), 32.0)  * 0.5 * u_lightColor;
-        result += diffuse + specular;
+        if (u_specularOn) {
+            reflection = 2.0 * max(dot(normal, lightPosition), 0.0) * (normal - lightPosition);
+            viewDirection =  normalize(u_CameraPosition - v_Position);
+            specular = pow(max(dot(reflection, viewDirection), 0.0), 32.0)  * 0.5 * u_lightColor;
+            result += specular;
+        }
+        result += diffuse;
         if (u_lightsOn) {
             if (theta > u_lightOuterCutoff) {
                 float epsilon = u_lightCutoff - u_lightOuterCutoff;
@@ -130,6 +137,7 @@ let u_ambientLight;
 let u_CameraPosition;
 let u_lightColor;
 let u_lightsOn;
+let u_specularOn;
 let u_SpotlightPosition;
 let u_SpotlightDirection;
 let u_lightCutoff;
@@ -556,6 +564,8 @@ function connectVariablesToGLSL() {
         return;
     }
 
+    u_specularOn = gl.getUniformLocation(gl.program, 'u_specularOn');
+
     u_SpotlightPosition = gl.getUniformLocation(gl.program, 'u_SpotlightPosition');
     u_SpotlightDirection = gl.getUniformLocation(gl.program, 'u_SpotlightDirection');
     u_lightCutoff = gl.getUniformLocation(gl.program, 'u_lightCutoff');
@@ -744,7 +754,7 @@ function buildMap() {
 
     let s = new Cube();
     s.matrix.translate(-2, 4, 26);
-    s.matrix.scale(0.2, 0.2, 0.2);
+    s.matrix.scale(-0.2, -0.2, -0.2);
     wallMatrices = wallMatrices.concat(Array.from(s.matrix.elements));
     s.normalMatrix.setInverseOf(s.matrix).transpose();
     normalMatrixs = normalMatrixs.concat(Array.from(s.normalMatrix.elements));
@@ -756,7 +766,7 @@ function buildMap() {
 
     let l = new Cube();
     l.matrix.translate(g_lightLocation[0], g_lightLocation[1], g_lightLocation[2]);
-    l.matrix.scale(0.2, 0.2, 0.2);
+    l.matrix.scale(-0.2, -0.2, -0.2);
     wallMatrices = wallMatrices.concat(Array.from(l.matrix.elements));
     l.normalMatrix.setInverseOf(l.matrix).transpose();
     normalMatrixs = normalMatrixs.concat(Array.from(l.normalMatrix.elements));
@@ -782,7 +792,7 @@ function updateLightCube() {
     }
     let l = new Cube();
     l.matrix.translate(g_lightLocation[0], g_lightLocation[1], g_lightLocation[2]);
-    l.matrix.scale(0.2, 0.2, 0.2);
+    l.matrix.scale(-0.2, -0.2, -0.2);
     wallMatrices = wallMatrices.concat(Array.from(l.matrix.elements));
     l.normalMatrix.setInverseOf(l.matrix).transpose();
     normalMatrixs = normalMatrixs.concat(Array.from(l.normalMatrix.elements));
@@ -1283,11 +1293,12 @@ function renderAllShapes() {
     gl.uniform1i(u_lightsOn, g_lightsOn);
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
+    gl.uniform1i(u_specularOn, false);
     drawAllCubes(matrixBuffers.wallBuffer, colorBuffers.wallBuffer, matrixBuffers.normalMatrixBuffer, wallCubeCount);
     if (desk) {
         drawObjects(desk, 21);
     }
+    gl.uniform1i(u_specularOn, true);
     drawSpheres(1);
     var duration = performance.now() - startTime;
     document.getElementById("performance").textContent = "ms: " + Math.floor(duration) + " fps: " + Math.floor(1000/duration);
