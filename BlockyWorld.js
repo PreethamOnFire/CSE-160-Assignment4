@@ -111,7 +111,7 @@ var FSHADER_SOURCE =
             gl_FragColor = color;
         }
       } else {
-        gl_FragColor = vec4(vNormal, 1.0); 
+        gl_FragColor = vec4((vNormal+1.0)/2.0, 1.0); 
       }
     }`;
 
