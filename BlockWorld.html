@@ -13,22 +13,63 @@
                 I just finished watching the show Severance and I thought it be fun to try and design my blocky world to look
                 like the severed floor on Severance. I tried making the office to be basic and maze like to reflect how the office 
                 was in the show.  <br>
-                
+                 <br>
                 Features: <br>
                 You can control the camera using the mouse and use WASD to move. E and Q can also rotate the camera.
                 You can place blocks using middle mouse button and break blocks using left click. You can only break and place wall blocks.<br>
                 I created a simple object loader that assumes that the faces are all triangles. I modeled a simple desk in blender
                 and exported it as a obj file. I loaded it into the world and you can find that desk model around the world. You can
                 find the obj file in the repo. <br>
+                Also I do have colors and textures working together. The sky box is a blue box and there is hallway that is a black hallway. <br> <br>
+                For Lighting: <br>
+                You can change the color of the light with the RGB sliders. You can change the location of the point light using the XYZ sliders.
+                All the buttons are toggles. Normal Vizualizations sets the color to the normal, Animation stops and starts the animation of the point light, 
+                and lights turns on and off the light. The mouse control button disables using the mouse to rotate the camera to make it easier to select 
+                the options. The spotlight can be changed to a flashlight where the spotlight location becomes the camera location and the spotlight points to 
+                where ever the camera is pointing.
 
-                Also I do have colors and textures working together. The sky box is a blue box and there is hallway that is a black hallway.
             </p>
             <canvas class="canvas" id="webgl" width="1500" height="800">
                 Please use browser that supports "canvas"
             </canvas>
         </div>
         <h2 id="performance">0</h2>
+        <div class="general-input">
+            <button id="normalVis" onclick="handleNormalVisualization()">Normal Visualization on/off</button>
+            <button id="lights" onclick="handleLights()">Lights on/off</button>
+            <button id="lights" onclick="handleAnimation()">Animation on/off</button>
+            <button id="lights" onclick="handleCamera()">Mouse Controls on/off</button>
+            <button id="lights" onclick="handleFlashlight()">Change Spotlight to Flashlight on/off</button>
+        </div>
         <div class="slider-options">
+            <div class="color-selection">
+                <div class="slider">
+                    <label>Red: </label>
+                    <input type="range" min="0" max="100" value="100" id="Red">
+                </div>
+                <div class="slider">
+                    <label>Green: </label>
+                    <input type="range" min="0" max="100" value="100" id="Green">
+                </div>
+                <div class="slider">
+                    <label>Blue: </label>
+                    <input type="range" min="0" max="100" value="100" id="Blue">
+                </div>
+            </div>
+            <div class="misc-options">
+                <div class="slider">
+                    <label>X: </label>
+                    <input type="range" min="0" max="320" value="160" id="X">
+                </div>
+                <div class="slider">
+                    <label>Y: </label>
+                    <input type="range" min="0" max="100" value="50" id="Y">
+                </div>
+                <div class="slider">
+                    <label>Z: </label>
+                    <input type="range" min="0" max="320" value="160" id="Z">
+                </div>
+            </div>
         </div>
         <script src="lib/webgl-utils.js"></script>
         <script src="lib/webgl-debug.js"></script>
@@ -37,6 +78,7 @@
         <script src="Cube.js"></script>
         <script src="Camera.js"></script>
         <script src="Obj.js"></script>
+        <script src="Sphere.js"></script>
         <script src="BlockyWorld.js"></script>
     </body>
 </html>
