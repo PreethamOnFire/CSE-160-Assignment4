@@ -175,6 +175,16 @@ let sphereBuffers = {
     numVert: 0,
 }
 
+let benchyBuffers = {
+    vertexBuffer: null,
+    UvBuffer: null,
+    normalBuffer: null,
+    colorBuffer: null,
+    matrixBuffer: null,
+    normalMatrixBuffer: null,
+    numVertex: 0,
+}
+
 var g_globalNormalVis = 0;
 var g_lightColor = [1.0, 1.0, 1.0, 1.0];
 var g_lightLocation = [-2, 4, 26];
@@ -946,6 +956,51 @@ function placeObjects() {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(SMNList), gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, sphereBuffers.colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(SMColor), gl.STATIC_DRAW);
+
+    //Benchy
+    var loader = new OBJLoader('./assets/benchy.obj');
+    loader.parseModel().then(() => {
+        var data = loader.getModelData();
+        benchyBuffers.vertexBuffer = gl.createBuffer();
+        benchyBuffers.colorBuffer = gl.createBuffer();
+        benchyBuffers.UvBuffer = gl.createBuffer();
+        benchyBuffers.normalBuffer = gl.createBuffer();
+        benchyBuffers.matrixBuffer = gl.createBuffer();
+        benchyBuffers.normalMatrixBuffer = gl.createBuffer();
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, benchyBuffers.vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.vertices), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, benchyBuffers.normalBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.normals), gl.STATIC_DRAW);
+        benchyBuffers.numVertex = data.vertices.length / 3;
+        var uvList = [];
+        for (let i = 0; i < data.vertices.length / 3; i++){
+            uvList.push(0.0, 0.0);
+        }
+        console.log(uvList.length / 2);
+        gl.bindBuffer(gl.ARRAY_BUFFER, benchyBuffers.UvBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvList), gl.STATIC_DRAW);
+        var BMList = [];
+        var BMNList = [];
+        var BMColor = [];
+        BMColor = BMColor.concat(red);
+        BMColor.push(0.0);
+        BMColor.push(4.0);
+        BMColor.push(1.0);
+        var SM = new Matrix4();
+        SM.translate(-2, -1, 24);
+        SM.scale(0.4, 0.4, 0.4);
+        BMList = BMList.concat(Array.from(SM.elements));
+        SM.setInverseOf(SM).transpose();
+        BMNList = BMNList.concat(Array.from(SM.elements));
+        gl.bindBuffer(gl.ARRAY_BUFFER, benchyBuffers.matrixBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(BMList), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, benchyBuffers.normalMatrixBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(BMNList), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, benchyBuffers.colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(BMColor), gl.STATIC_DRAW);
+        console.log(benchyBuffers);
+    });
 }
 
 var wallCubeCount;
@@ -1297,6 +1352,9 @@ function renderAllShapes() {
     drawAllCubes(matrixBuffers.wallBuffer, colorBuffers.wallBuffer, matrixBuffers.normalMatrixBuffer, wallCubeCount);
     if (desk) {
         drawObjects(desk, 21);
+    }
+    if (benchyBuffers.vertexBuffer) {
+        drawObjects(benchyBuffers, 1);
     }
     gl.uniform1i(u_specularOn, true);
     drawSpheres(1);
